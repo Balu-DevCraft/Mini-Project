@@ -1,0 +1,13 @@
+ .form_space{
+  margin: auto;
+  width: 25%;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  border: 1px rgb(154, 152, 152) solid;
+  padding: 25px;
+  border-radius: 10px;
+  background-color: rgb(255, 255, 255);
+} 
+.main_div{
+    height: 600px;
+    background-color: rgba(119, 136, 153, 0.611);
+  }
