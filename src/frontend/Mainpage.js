@@ -4,21 +4,23 @@ import axios from "axios";
 import img1 from "../Assets/img1.jpg";
 import img2 from "../Assets/img2.jpg";
 import Container from "react-bootstrap/Container";
-import { Link } from "react-router-dom";
-import "./Mainpage.css"; // Add custom styles here
+import { Link, useNavigate } from "react-router-dom";
+import "./Mainpage.css"; 
 
 const { Meta } = Card;
 
 function Mainpage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
   // Fetch items from the API
   useEffect(() => {
     axios
       .get("http://localhost:3000/getApprovedItems")
       .then((response) => {
         setItems(response.data);
+        console.log(response);
+        
         setLoading(false);
       })
       .catch((error) => {
@@ -26,7 +28,8 @@ function Mainpage() {
         setLoading(false);
       });
   }, []);
-
+// Handle card click to navigate to detail page 
+const handleCardClick = (id) => { navigate(`/details/${id}`); };
   return (
     <div style={{ backgroundColor: "#f9f9f9", paddingBottom: "50px" }}>
       {/* Header Button */}
@@ -105,7 +108,11 @@ function Mainpage() {
                     cover={
                       <img
                         alt={item.name}
-                        src={item.img}
+                        src={`http://localhost:3000${item.img}`}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "default-image.jpg"; // Fallback to default image if the image fails to load
+                        }}
                         style={{ height: "200px", objectFit: "cover", borderRadius: "10px 10px 0 0" }}
                       />
                     }
@@ -114,6 +121,7 @@ function Mainpage() {
                       overflow: "hidden",
                       boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
                     }}
+                    onClick={() => handleCardClick(item._id)}
                   >
                     <Meta title={item.name} description={`Certificate ID: ${item.certificateId}`} />
                     <p>

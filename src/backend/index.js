@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
+
 const EmployeeModel = require("./models/Employee");
 const ItemModel = require("./models/Item");
 
@@ -17,28 +19,27 @@ app.use(express.urlencoded({ extended: true }));
 if (!fs.existsSync(path.join(__dirname, "public/uploads"))) {
   fs.mkdirSync(path.join(__dirname, "public/uploads"), { recursive: true });
 }
+
 // Static folder to serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+
 // Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "public/uploads"));
-    // Save files to the 'public/uploads' directory
+    cb(null, path.join(__dirname, "public/uploads")); // Save files to the 'public/uploads' directory
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`); // Generate unique file names
   },
 });
-// const upload = multer({ storage });
+// D:\MyDocuments\miniproject-master\miniproject-master\src\backend\public\uploads\1733770932106-Main AI INspection 1.jpg
+
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true); // Accept the file
   } else {
-    cb(
-      new Error("Invalid file type. Only .jpg, .jpeg, and .png are allowed."),
-      false
-    );
+    cb(new Error("Invalid file type. Only .jpg, .jpeg, and .png are allowed."), false);
   }
 };
 
@@ -60,14 +61,12 @@ mongoose
     process.exit(1);
   });
 
-// **Employee Login and Registration**
+// Employee Login and Registration
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required." });
+      return res.status(400).json({ message: "Email and password are required." });
     }
 
     const user = await EmployeeModel.findOne({ email });
@@ -109,12 +108,16 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// **Item Management**
+
+// Item Management
 app.post("/api/addItem", upload.single("img"), async (req, res) => {
   try {
     const { certificateId, name, year, description, price, uniqueCode } =
       req.body;
-    const img = req.file ? req.file.path : null;
+      const fullImgPath = req.file ? req.file.path : null;
+      const img = fullImgPath ? fullImgPath.replace(/^.*\\public\\/, '/').replace(/\\/g, '/') : null;
+      console.log("fullImgPath", fullImgPath); // Log full path for debugging console.log("img", img); 
+      console.log("img", img);// Log relative path to confirm
 
     if (
       !img ||
@@ -211,6 +214,13 @@ app.delete("/rejectItem/:id", async (req, res) => {
       return res.status(404).json({ message: "Item not found." });
     }
 
+    // Delete associated image file
+    if (deletedItem.img) {
+      fs.unlink(path.join(__dirname, deletedItem.img), (err) => {
+        if (err) console.error("Failed to delete image:", err.message);
+      });
+    }
+
     res
       .status(200)
       .json({ message: "Item rejected and deleted successfully." });
@@ -219,8 +229,32 @@ app.delete("/rejectItem/:id", async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 });
+const mongoose = require("mongoose");
 
-// **Start Server**
+app.get("/getItem/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid ID format." });
+    }
+
+    // Find item by ID
+    const item = await ItemModel.findById(id);
+
+    if (!item) {
+      return res.status(404).json({ message: "Item not found." });
+    }
+
+    res.status(200).json(item); // Return the found item
+  } catch (error) {
+    console.error("Error in /getItem:", error.message);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Start Server
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

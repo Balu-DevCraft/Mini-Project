@@ -9,6 +9,7 @@ import Verifier from "./frontend/Verifier";
 import bootstrap from '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import VerifierDashboard from "./frontend/VerifierDashboard";
 import Mainpage from "./frontend/Mainpage";
+import Detailpage from "./frontend/Detailpage";
 import Add from "./frontend/Add";
 import Edit from "./frontend/Edit";
 
@@ -28,7 +29,7 @@ function App() {
             <Route path="/Mainpage" element={<Mainpage />} />
             <Route path="/add" element={<Add />} />
             <Route path="/edit" element={<Edit />} />
-
+            <Route path="/details/:id" element={<Detailpage/>} />
 
 
 
